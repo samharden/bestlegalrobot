@@ -13,7 +13,7 @@ SECRET_KEY = 'fsch+6!=q+@ol&%0x!nwdl@48^ixbd4clx5f1i!5n^66y+pmn*'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['bestlegalrobot.herokuapp.com']
+ALLOWED_HOSTS = ['bestlegalrobot.herokuapp.com', 'localhost']
 
 
 # Application definition
@@ -75,13 +75,58 @@ WSGI_APPLICATION = 'example_app.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
+import urllib.parse as urlparse
+
+# Register database schemes in URLs.
+urlparse.uses_netloc.append('mysql')
+
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'heroku_563dcea23b661a0',
+        'USER': 'bdaa701ad6305f',
+        'PASSWORD': 'a6dedabb',
+        'HOST': 'us-cdbr-iron-east-03.cleardb.net',
+        'PORT': '3306',
     }
 }
+
+
+try:
+
+    # Check to make sure DATABASES is set in settings.py file.
+    # If not default to {}
+
+    if 'DATABASES' not in locals():
+        DATABASES = {}
+
+    if 'DATABASE_URL' in os.environ:
+        url = urlparse.urlparse(os.environ['mysql://bdaa701ad6305f:a6dedabb@us-cdbr-iron-east-03.cleardb.net/heroku_563dcea23b661a0?reconnect=true'])
+
+        # Ensure default database exists.
+        DATABASES['default'] = DATABASES.get('default', {})
+
+        # Update with environment configuration.
+        DATABASES['default'].update({
+            'NAME': url.path[1:],
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': url.port,
+        })
+
+
+        if url.scheme == 'mysql':
+            DATABASES['default']['ENGINE'] = 'django.db.backends.mysql'
+except Exception:
+    print('Unexpected error:', sys.exc_info())
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
 
 
 # Internationalization
